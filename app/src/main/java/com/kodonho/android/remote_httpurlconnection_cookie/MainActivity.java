@@ -1,6 +1,7 @@
 package com.kodonho.android.remote_httpurlconnection_cookie;
 
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,10 +10,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.net.HttpCookie;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    SharedPreferences sp;
+    SharedPreferences.Editor editor;
 
     EditText etId;
     EditText etPassword;
@@ -23,6 +29,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        sp = getApplicationContext().getSharedPreferences("cookie", 0);
+        editor = sp.edit();
+
         setContentView(R.layout.activity_main);
 
         etId = (EditText) findViewById(R.id.etId);
@@ -35,13 +45,16 @@ public class MainActivity extends AppCompatActivity {
                 signin();
             }
         });
+        String keyID = "USERID";
+        String keyPW = "USERPW";
+        tvResult.setText(keyID+"="+sp.getString(keyID,"") + ";"+keyPW+"=" + sp.getString(keyPW,""));
     }
 
     private void signin(){
 
         Map userInfo = new HashMap();
         userInfo.put("user_id",etId.getText().toString());
-        userInfo.put("user_pwd",etPassword.getText().toString());
+        userInfo.put("user_pw",etPassword.getText().toString());
 
         new AsyncTask<Map,Void,String>(){
             ProgressDialog progress;
@@ -70,6 +83,14 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(String result) {
                 super.onPostExecute(result);
 
+                List<HttpCookie> cookies = Remote.cookieManager.getCookieStore().getCookies();
+                StringBuffer cookieString = new StringBuffer();
+                for(HttpCookie cookie : cookies){
+                    cookieString.append(cookie.getName()+"="+cookie.getValue()+"\n");
+                    editor.putString(cookie.getName(),cookie.getValue());
+                    // 삭제 editor.remove("키") ,  전체삭제 editor.clear();
+                }
+                editor.commit();
                 progress.dismiss();
             }
         }.execute(userInfo);

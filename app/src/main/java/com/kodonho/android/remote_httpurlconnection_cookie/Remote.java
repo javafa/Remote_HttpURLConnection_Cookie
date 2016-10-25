@@ -6,9 +6,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,6 +21,8 @@ import java.util.Map;
 
 public class Remote {
     private static final String TAG="REMOTE";
+    static CookieManager cookieManager = new CookieManager();
+    static final String COOKIE_URL = "http://localhost";
 
     public static String getData(String webUrl) throws IOException {
         StringBuffer result = new StringBuffer();
@@ -78,6 +84,27 @@ public class Remote {
         }else{
             Log.e(TAG,"HTTP error code="+responseCode);
         }
+        // 서버측에서 넘겨받은 헤더를 파싱할 예정
+        // Cookie 매니저에 저장 : 앱을 종료시 같이 사라진다
+        Map<String, List<String>> headers = connection.getHeaderFields();
+        List<String> cookies = headers.get("Set-Cookie");
+        if(cookies != null && cookies.size() > 0){
+            for(String cookie : cookies){
+                Log.e(TAG,"HttpCookie:"+HttpCookie.parse(cookie).get(0));
+                cookieManager.getCookieStore().add(URI.create(COOKIE_URL), HttpCookie.parse(cookie).get(0));
+            }
+        }
+
+        // SharedPreference 에 저장 : 앱을 종료 시켜도 유지된다
+        // 1. 선언
+        // 전체 헤더 로그로 보기
+//        ArrayList<String> keySet = new ArrayList(headers.keySet());
+//        for(String key:keySet){
+//            for(String value: headers.get(key)) {
+//                Log.i("HTTP HEADER", key + ":" + value);
+//            }
+//        }
+
         return result.toString();
     }
 
