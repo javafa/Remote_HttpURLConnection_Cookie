@@ -12,8 +12,6 @@ import android.widget.TextView;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kodonho.android.remote_httpurlconnection_cookie.Remote.postData;
-
 public class MainActivity extends AppCompatActivity {
 
     EditText etId;
@@ -62,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 String result = "";
                 String url = "http://192.168.0.177/setCookies.jsp";
                 try {
-                    result = postData(url, params[0], "POST");
+                    result = Remote.postData(url, params[0], "POST");
                 }catch(Exception e){
                     e.printStackTrace();
                 }
